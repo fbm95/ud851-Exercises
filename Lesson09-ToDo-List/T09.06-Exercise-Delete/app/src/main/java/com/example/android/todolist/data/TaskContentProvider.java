@@ -139,6 +139,20 @@ public class TaskContentProvider extends ContentProvider {
                         null,
                         sortOrder);
                 break;
+            case TASK_WITH_ID:
+                String id = uri.getPathSegments().get(1);
+
+                String mSelection = TaskContract.TaskEntry._ID + "=?";
+                String[] mSelectionArgs = new String[]{id};
+
+                retCursor =  db.query(TABLE_NAME,
+                        projection,
+                        mSelection,
+                        mSelectionArgs,
+                        null,
+                        null,
+                        sortOrder);
+                break;
             // Default exception
             default:
                 throw new UnsupportedOperationException("Unknown uri: " + uri);
@@ -156,14 +170,37 @@ public class TaskContentProvider extends ContentProvider {
     @Override
     public int delete(@NonNull Uri uri, String selection, String[] selectionArgs) {
 
-        // TODO (1) Get access to the database and write URI matching code to recognize a single item
+        // DONE (1) Get access to the database and write URI matching code to recognize a single item
+        final SQLiteDatabase db = mTaskDbHelper.getReadableDatabase();
+        int match = sUriMatcher.match(uri);
 
-        // TODO (2) Write the code to delete a single row of data
+        int retInt;
+
+        // DONE (2) Write the code to delete a single row of data
         // [Hint] Use selections to delete an item by its row ID
+        switch (match) {
+            // Query for the tasks directory
+            case TASK_WITH_ID:
+                String id = uri.getPathSegments().get(1);
 
-        // TODO (3) Notify the resolver of a change and return the number of items deleted
+                String mWhereClause = TaskContract.TaskEntry._ID + "=?";
+                String[] mWhereArgs = new String[]{id};
 
-        throw new UnsupportedOperationException("Not yet implemented");
+                retInt =  db.delete(TABLE_NAME,
+                        mWhereClause,
+                        mWhereArgs);
+                break;
+            // Default exception
+            default:
+                throw new UnsupportedOperationException("Unknown uri: " + uri);
+        }
+
+        // DONE (3) Notify the resolver of a change and return the number of items deleted
+        if(retInt != 0 ){
+            getContext().getContentResolver().notifyChange(uri, null);
+        }
+
+        return retInt;
     }
 
 
